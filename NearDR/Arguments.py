@@ -5,8 +5,9 @@ from transformers import TrainingArguments
 @dataclass
 class DataTrainingArguments:
     data_dir: str = field()  # "./data/passage or doc/preprocess"
-    preprocess_dir: str = field()  # use prepare_hardneg.py to generate
-    label_path: str = field(metadata={"help: the path of qrel.tsv file"})
+    hardneg_path: str = field()  # use prepare_hardneg.py to generate or use bm25
+    label_path: str = field(metadata={"help": "the path of qrel.tsv file"})
+    data_type: int = field(default=0, metadata={"help": "0 for doc, 1 for passage"})
     max_seq_length: int = field(default=64)
     max_query_length: int = field(default=24)  # 24
     max_doc_length: int = field(default=120)  #  512 for doc and 120 for passage
@@ -14,8 +15,8 @@ class DataTrainingArguments:
 
 @dataclass
 class ModelArguments:
-    init_path: str = field()  # please use bm25 warmup model or roberta-base
-    model_name_or_path: str = field()
+    init_path: str = field(default=None)  # please use bm25 warmup model or roberta-base
+    model_name_or_path: str = field(default='roberta-base')
     gradient_checkpointing: bool = field(default=False)
 
 
@@ -77,3 +78,32 @@ class MyTrainingArguments(TrainingArguments):
     )
     local_rank: int = field(default=-1, metadata={"help": "For distributed training: local_rank"})
     metric_cut: int = field(default=None)
+
+
+@dataclass
+class TokenizeArguments:
+    model_name_or_path: str = field(default='roberta-base')
+    data_dir: str = field(default='./data/doc/dataset', metadata={"help": "The input data dir"})
+    out_data_dir: str = field(default='./data/doc/preprocess', metadata={"help": "The output data dir"})
+    max_seq_length: int = field(
+        default=512,
+        metadata={
+            "help": "The maximum total input sequence length after tokenization. "
+                    "Sequences longer than this will be truncated, sequences shorter will be padded."
+        }
+    )
+    max_query_length: int = field(
+        default=64,
+        metadata={
+            "help": "The maximum total input sequence length after tokenization. "
+                    "Sequences longer than this will be truncated, sequences shorter will be padded."
+        }
+    )
+    max_doc_character: int = field(
+        default=10000,
+        metadata={
+            "help": "used before tokenizer to save tokenizer latency"
+        }
+    )
+    data_type: int = field(default=1, metadata={"help": "0 for doc, 1 for passage"})
+    threads: int = field(default=32)

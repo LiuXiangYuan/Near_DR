@@ -1,58 +1,33 @@
-import torch.nn as nn
-
-import transformers
-if int(transformers.__version__[0]) <=3:
-    from transformers.modeling_roberta import RobertaPreTrainedModel
-else:
-    from transformers.models.roberta.modeling_roberta import RobertaPreTrainedModel
-from transformers import RobertaModel
-
-from models._models import BaseModelDot
-
-from models.model_forward import inbatch_train, randneg_train
+from ._Roberta import RobertaDot_InBatch, RobertaDot_Rand
+from ._TinyBert import TinyBertDot_InBatch, TinyBertDot_Rand
+from ._Distrilbert import DistillbertDot_InBatch, DistillbertDot_Rand
 
 
-class RobertaDot(BaseModelDot, RobertaPreTrainedModel):
-    def __init__(self, config, model_argobj=None):
-        BaseModelDot.__init__(self, model_argobj)
-        RobertaPreTrainedModel.__init__(self, config)
-        if int(transformers.__version__[0]) ==4:
-            config.return_dict = False
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
-        if hasattr(config, "output_embedding_size"):
-            self.output_embedding_size = config.output_embedding_size
+MODEL_MAP = {
+    'roberta_in_batch': RobertaDot_InBatch,
+    'roberta_rand': RobertaDot_Rand,
+    'tinybert_in_batch': TinyBertDot_InBatch,
+    'tinybert_rand': TinyBertDot_Rand,
+    'distrilbert_in_batch': DistillbertDot_InBatch,
+    'distrilbert_rand': DistillbertDot_Rand
+}
+
+
+def get_model_class(model_name_or_path, hard_neg=False, rand_neg=False):
+    if 'roberta' in model_name_or_path:
+        if rand_neg:
+            return MODEL_MAP['roberta_rand']
         else:
-            self.output_embedding_size = config.hidden_size
-        print("output_embedding_size", self.output_embedding_size)
-        self.embeddingHead = nn.Linear(config.hidden_size, self.output_embedding_size)
-        self.norm = nn.LayerNorm(self.output_embedding_size)
-        self.apply(self._init_weights)
+            return MODEL_MAP['roberta_in_batch']
 
-    def _text_encode(self, input_ids, attention_mask):
-        outputs1 = self.roberta(input_ids=input_ids,
-                                attention_mask=attention_mask)
-        return outputs1
+    if 'tiny' in model_name_or_path:
+        if rand_neg:
+            return MODEL_MAP['tinybert_rand']
+        else:
+            return MODEL_MAP['tinybert_in_batch']
 
-
-class RobertaDot_InBatch(RobertaDot):
-    def forward(self, input_query_ids, query_attention_mask,
-                input_doc_ids, doc_attention_mask=None,
-                other_doc_ids=None, other_doc_attention_mask=None,
-                rel_pair_mask=None, hard_pair_mask=None):
-        return inbatch_train(self.query_emb, self.body_emb,
-                             input_query_ids, query_attention_mask,
-                             input_doc_ids, doc_attention_mask,
-                             other_doc_ids, other_doc_attention_mask,
-                             rel_pair_mask, hard_pair_mask)
-
-
-class RobertaDot_Rand(RobertaDot):
-    def forward(self, input_query_ids, query_attention_mask,
-                input_doc_ids, doc_attention_mask=None,
-                other_doc_ids=None, other_doc_attention_mask=None,
-                rel_pair_mask=None, hard_pair_mask=None):
-        return randneg_train(self.query_emb, self.body_emb,
-                             input_query_ids, query_attention_mask,
-                             input_doc_ids, doc_attention_mask,
-                             other_doc_ids, other_doc_attention_mask,
-                             hard_pair_mask)
+    if 'distril' in model_name_or_path:
+        if rand_neg:
+            return MODEL_MAP['distrilbert_rand']
+        else:
+            return MODEL_MAP['distrilbert_in_batch']

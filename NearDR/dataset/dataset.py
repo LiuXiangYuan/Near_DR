@@ -4,7 +4,7 @@ import random
 from typing import List
 from torch.utils.data import Dataset
 
-from dataset.utils import load_rel
+from .utils import load_rel
 
 
 class SequenceDataset(Dataset):

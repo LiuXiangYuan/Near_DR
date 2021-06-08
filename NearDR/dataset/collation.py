@@ -1,6 +1,6 @@
 import torch
 
-from dataset.utils import pack_tensor_2D
+from .utils import pack_tensor_2D
 
 
 def get_collate_function(max_seq_length):
