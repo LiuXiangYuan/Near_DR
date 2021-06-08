@@ -36,19 +36,21 @@ def pack_tensor_2D(lstlst, default, dtype, length=None):
 
 class TextTokenIdsCache:
     def __init__(self, data_dir, prefix):
-        meta = json.load(open(f"{data_dir}/{prefix}_meta"))
+        dir_path = os.path.join(data_dir, prefix)
+        meta = json.load(open(f"{dir_path}_meta"))
         self.total_number = meta['total_number']
         self.max_seq_len = meta['embedding_size']
         try:
-            self.ids_arr = np.memmap(f"{data_dir}/{prefix}.memmap",
+            self.ids_arr = np.memmap(f"{dir_path}.memmap",
                                      shape=(self.total_number, self.max_seq_len),
                                      dtype=np.dtype(meta['type']), mode="r")
-            self.lengths_arr = np.load(f"{data_dir}/{prefix}_length.npy")
+            self.lengths_arr = np.load(f"{dir_path}_length.npy")
         except FileNotFoundError:
-            self.ids_arr = np.memmap(f"{data_dir}/memmap/{prefix}.memmap",
+            dir_path = os.path.join(data_dir, 'memmap', prefix)
+            self.ids_arr = np.memmap(f"{dir_path}.memmap",
                                      shape=(self.total_number, self.max_seq_len),
                                      dtype=np.dtype(meta['type']), mode="r")
-            self.lengths_arr = np.load(f"{data_dir}/memmap/{prefix}_length.npy")
+            self.lengths_arr = np.load(f"{dir_path}_length.npy")
         assert len(self.lengths_arr) == self.total_number
 
     def __len__(self):

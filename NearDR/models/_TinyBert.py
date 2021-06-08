@@ -2,7 +2,7 @@ import torch.nn as nn
 
 from ._models import BaseModelDot
 from .model_forward import inbatch_train, randneg_train
-from transformers import BertForSequenceClassification
+from transformers import AutoModelForSequenceClassification
 from transformers.models.bert.modeling_bert import BertPreTrainedModel
 
 
@@ -11,7 +11,7 @@ class TinyBertDot(BaseModelDot, BertPreTrainedModel):
         BaseModelDot.__init__(self, model_argobj)
         BertPreTrainedModel.__init__(self, config)
         config.return_dict = False
-        self.roberta = BertForSequenceClassification(config, add_pooling_layer=False)
+        self.tinybert = AutoModelForSequenceClassification.from_pretrained(config=config, add_pooling_layer=False)
         if hasattr(config, "output_embedding_size"):
             self.output_embedding_size = config.output_embedding_size
         else:
@@ -22,8 +22,8 @@ class TinyBertDot(BaseModelDot, BertPreTrainedModel):
         self.apply(self._init_weights)
 
     def _text_encode(self, input_ids, attention_mask):
-        outputs1 = self.roberta(input_ids=input_ids,
-                                attention_mask=attention_mask)
+        outputs1 = self.tinybert(input_ids=input_ids,
+                                 attention_mask=attention_mask)
         return outputs1
 
 

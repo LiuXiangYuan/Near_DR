@@ -1,21 +1,21 @@
 import os
-import torch
 import logging
 import transformers
 
 from utils import set_seed
 from transformers import HfArgumentParser
+from torch.utils.tensorboard import SummaryWriter
 from dataset.utils import load_rel, TextTokenIdsCache
 
 from transformers import (
     AutoConfig,
-    AutoTokenizer
+    AutoTokenizer,
+    RobertaTokenizer
 )
 
 from arguments import (
     DataTrainingArguments,
     ModelArguments,
-    FaissArguments,
     MyTrainingArguments
 )
 
@@ -31,13 +31,19 @@ from dataset.collation import (
 )
 
 from models.models import get_model_class
+from trainer.DRTrainer import (
+    DRTrainer,
+    MyTrainerCallback,
+    TensorBoardCallback,
+    MyTensorBoardCallback
+)
 
 logger = logging.Logger(__name__)
 
 
 def main():
-    parser = HfArgumentParser((DataTrainingArguments, ModelArguments, FaissArguments, MyTrainingArguments))
-    data_args, model_args, faiss_args, training_args = parser.parse_args_into_dataclasses()
+    parser = HfArgumentParser((DataTrainingArguments, ModelArguments, MyTrainingArguments))
+    data_args, model_args, training_args = parser.parse_args_into_dataclasses()
 
     if (
             os.path.exists(training_args.output_dir)
@@ -56,10 +62,6 @@ def main():
         datefmt="%m/%d/%Y %H:%M:%S",
         level=logging.INFO if training_args.local_rank in [-1, 0] else logging.WARN,
     )
-
-    # device = torch.device('cuda' if torch.cuda.is_available() and not training_args.no_cuda else 'cpu')
-    # training_args.n_gpus = torch.cuda.device_count() if not training_args.no_cuda else 0
-    # training_args.device = device
 
     # Log on each process the small summary:
     logger.warning(
@@ -82,10 +84,16 @@ def main():
     )
     config.gradient_checkpointing = model_args.gradient_checkpointing
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_args.model_name_or_path,
-        use_fast=False,
-    )
+    if 'roberta' in model_args.model_name_or_path:
+        tokenizer = RobertaTokenizer.from_pretrained(
+            model_args.model_name_or_path,
+            use_fast=False
+        )
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_args.model_name_or_path,
+            use_fast=False
+        )
 
     rel_dict = load_rel(data_args.label_path)
     if data_args.data_type == 0:
@@ -100,11 +108,11 @@ def main():
             queryids_cache=TextTokenIdsCache(data_dir=data_args.data_dir, prefix="train-query"),
             docids_cache=TextTokenIdsCache(data_dir=data_args.data_dir, prefix=data_type),
             max_query_length=data_args.max_query_length,
-            max_doc_length=data_args.max_doc_length,
+            max_doc_length=data_args.max_seq_length,
             hard_num=training_args.per_query_hard_num
         )
         data_collator = triple_get_collate_function(
-            data_args.max_query_length, data_args.max_doc_length,
+            data_args.max_query_length, data_args.max_seq_length,
             rel_dict=rel_dict, padding=training_args.padding)
         model_class = get_model_class(model_args.model_name_or_path, hard_neg=True)
     elif training_args.rand_neg:
@@ -114,10 +122,10 @@ def main():
             queryids_cache=TextTokenIdsCache(data_dir=data_args.data_dir, prefix="train-query"),
             docids_cache=TextTokenIdsCache(data_dir=data_args.data_dir, prefix=data_type),
             max_query_length=data_args.max_query_length,
-            max_doc_length=data_args.max_doc_length
+            max_doc_length=data_args.max_seq_length
         )
         data_collator = triple_get_collate_function(
-            data_args.max_query_length, data_args.max_doc_length,
+            data_args.max_query_length, data_args.max_seq_length,
             rel_dict=rel_dict, padding=training_args.padding)
         model_class = get_model_class(model_args.model_name_or_path, rand_neg=True)
     else:
@@ -126,10 +134,10 @@ def main():
             queryids_cache=TextTokenIdsCache(data_dir=data_args.data_dir, prefix="train-query"),
             docids_cache=TextTokenIdsCache(data_dir=data_args.data_dir, prefix=data_type),
             max_query_length=data_args.max_query_length,
-            max_doc_length=data_args.max_doc_length
+            max_doc_length=data_args.max_seq_length
         )
         data_collator = dual_get_collate_function(
-            data_args.max_query_length, data_args.max_doc_length,
+            data_args.max_query_length, data_args.max_seq_length,
             rel_dict=rel_dict, padding=training_args.padding)
         model_class = get_model_class(model_args.model_name_or_path)
 
@@ -138,6 +146,27 @@ def main():
         from_tf=bool(".ckpt" in model_args.model_name_or_path),
         config=config,
     )
+
+    if training_args.exam_mode == 'other':
+        trainer = DRTrainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=None,
+            compute_metrics=None,
+            tokenizer=tokenizer,
+            data_collator=data_collator,
+        )
+        trainer.remove_callback(TensorBoardCallback)
+        trainer.add_callback(MyTensorBoardCallback(
+            tb_writer=SummaryWriter(os.path.join(training_args.output_dir, "log"))))
+        trainer.add_callback(MyTrainerCallback())
+
+        # Training
+        trainer.train()
+        trainer.save_model()  # Saves the tokenizer too for easy upload
+    else:
+        pass
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ class DistillbertDot(BaseModelDot, DistilBertPreTrainedModel):
         BaseModelDot.__init__(self, model_argobj)
         DistilBertPreTrainedModel.__init__(self, config)
         config.return_dict = False
-        self.roberta = DistilBertModel(config, add_pooling_layer=False)
+        self.distilbert = DistilBertModel.from_pretrained(config=config, add_pooling_layer=False)
         if hasattr(config, "output_embedding_size"):
             self.output_embedding_size = config.output_embedding_size
         else:
@@ -22,8 +22,8 @@ class DistillbertDot(BaseModelDot, DistilBertPreTrainedModel):
         self.apply(self._init_weights)
 
     def _text_encode(self, input_ids, attention_mask):
-        outputs1 = self.roberta(input_ids=input_ids,
-                                attention_mask=attention_mask)
+        outputs1 = self.distilbert(input_ids=input_ids,
+                                   attention_mask=attention_mask)
         return outputs1
 
 

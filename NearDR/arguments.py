@@ -5,12 +5,11 @@ from transformers import TrainingArguments
 @dataclass
 class DataTrainingArguments:
     data_dir: str = field()  # "./data/passage or doc/preprocess"
-    hardneg_path: str = field()  # use prepare_hardneg.py to generate or use bm25
     label_path: str = field(metadata={"help": "the path of qrel.tsv file"})
-    data_type: int = field(default=0, metadata={"help": "0 for doc, 1 for passage"})
-    max_seq_length: int = field(default=64)
+    hardneg_path: str = field(default=None)  # use prepare_hardneg.py to generate or use bm25
+    data_type: int = field(default=1, metadata={"help": "0 for doc, 1 for passage"})
+    max_seq_length: int = field(default=120)  # 512 for doc and 120 for passage
     max_query_length: int = field(default=24)  # 24
-    max_doc_length: int = field(default=120)  #  512 for doc and 120 for passage
 
 
 @dataclass
@@ -78,6 +77,7 @@ class MyTrainingArguments(TrainingArguments):
     )
     local_rank: int = field(default=-1, metadata={"help": "For distributed training: local_rank"})
     metric_cut: int = field(default=None)
+    exam_mode: str = field(default="other", metadata={"help": "other for bm25/rand/in-batch, adore for adore trainer"})
 
 
 @dataclass
