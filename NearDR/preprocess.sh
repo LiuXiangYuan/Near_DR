@@ -2,8 +2,8 @@
 sbatch <<EOT
 #!/bin/sh
 #SBATCH --job-name=DR_preprocess_passage
-#SBATCH -o ./preprocess_log/marco_passage/preprocess-passage-roberta-base-ts4.%A.out
-#SBATCH -e ./preprocess_log/marco_passage/preprocess-passage-roberta-base-ts4.%A.err
+#SBATCH -o ./preprocess_log/marco_passage/preprocess-passage-ms-marco-TinyBERT-L-2-v2.%A.out
+#SBATCH -e ./preprocess_log/marco_passage/preprocess-passage-ms-marco-TinyBERT-L-2-v2.%A.err
 #SBATCH -p debug
 #SBATCH --gres=gpu:0
 #SBATCH --nodelist=gpu04
