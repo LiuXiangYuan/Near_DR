@@ -135,17 +135,8 @@ dmypy.json
 *.err
 *.out
 
-dataset/index/marco_document
-dataset/index/marco_passage
+marco_document/
+marco_passage/
 
-dataset/json_format_data/marco_document
-dataset/json_format_data/marco_passage
-
-dataset/raw_data/marco_document
-dataset/raw_data/marco_passage
-
-dataset/preprocessed/marco_document
-dataset/preprocessed/marco_passage
-
-baseline_output/
+baseline_output/*
 
