@@ -11,7 +11,7 @@ class RobertaDot(BaseModelDot, RobertaPreTrainedModel):
         BaseModelDot.__init__(self, model_argobj)
         RobertaPreTrainedModel.__init__(self, config)
         config.return_dict = False
-        self.roberta = RobertaModel.from_pretrained(config=config, add_pooling_layer=False)
+        self.roberta = RobertaModel(config=config, add_pooling_layer=False)
         if hasattr(config, "output_embedding_size"):
             self.output_embedding_size = config.output_embedding_size
         else:

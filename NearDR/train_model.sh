@@ -5,9 +5,9 @@ sbatch <<EOT
 #SBATCH -o ./model_logs/marco_passage/train-model-roberta-base-ts4.%A.out
 #SBATCH -e ./model_logs/marco_passage/train-model-roberta-base-ts4.%A.err
 #SBATCH -p debug
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:4
 #SBATCH --nodelist=gpu04
-#SBATCH -c10
+#SBATCH -c5
 #SBATCH --mem=80G
 #SBATCH --time=10-00:00:00
 
@@ -19,7 +19,7 @@ PYTHONPATH=/data/liuxiangyuan-slurm/work2021/Near_DR/NearDR/
 
 # CUDA_VISIBLE_DEVICES=0
 
-CUDA_VISIBLE_DEVICES=0,1 python -u main.py \
+CUDA_VISIBLE_DEVICES=0,1,2,3 python -u main.py \
 --data_dir ${DATA_DIR} \
 --label_path ${LABEL_PATH} \
 --data_type ${DATA_TYPE} \
