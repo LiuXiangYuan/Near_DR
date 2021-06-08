@@ -131,15 +131,14 @@ dmypy.json
 # pycharm env
 .idea/
 
-# temp data folder
-temp_data/
 
 *.log
 
-model_output/
+dataset/index/marco_document
+dataset/index/marco_passage
 
-cast_indexes/
+dataset/json_format_data/marco_document
+dataset/json_format_data/marco_passage
 
-cedr/cedr/models/
-
-data/cache/
+dataset/raw_data/marco_document
+dataset/raw_data/marco_passage
