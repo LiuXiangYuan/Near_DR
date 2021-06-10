@@ -101,12 +101,21 @@ def main():
         "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
     args.n_gpu = 0 if args.no_cuda else torch.cuda.device_count()
 
+    # Setup logging
+    logging.basicConfig(
+        format="%(asctime)s-%(levelname)s-%(name)s- %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        level=logging.INFO
+    )
+
     args.query_memmap_path = os.path.join(args.output_dir, f"{args.mode}-query.memmap")
     args.queryids_memmap_path = os.path.join(args.output_dir, f"{args.mode}-query-id.memmap")
     args.output_rank_file = os.path.join(args.output_dir, f"{args.mode}.rank.tsv")
     args.doc_memmap_path = os.path.join(args.output_dir, "passages.memmap")
     args.docid_memmap_path = os.path.join(args.output_dir, "passages-id.memmap")
+
     logger.info(args)
+
     os.makedirs(args.output_dir, exist_ok=True)
 
     config = AutoConfig.from_pretrained(args.model_path, gradient_checkpointing=False)
@@ -114,8 +123,13 @@ def main():
     model = model_class.from_pretrained(args.model_path, config=config)
     output_embedding_size = model.output_embedding_size
     model = model.to(args.device)
+    print("start infer query")
     query_inference(model, args, output_embedding_size)
+    print("end infer query")
+
+    print("start infer document")
     doc_inference(model, args, output_embedding_size)
+    print("end infer document")
     
     del model
     torch.cuda.empty_cache()
