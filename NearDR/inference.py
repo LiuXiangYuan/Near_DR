@@ -77,13 +77,13 @@ def doc_inference(model, args, embedding_size):
     if os.path.exists(args.doc_memmap_path):
         print(f"{args.doc_memmap_path} exists, skip inference")
         return
-    doc_collator = single_get_collate_function(args.max_doc_length)
+    doc_collator = single_get_collate_function(args.max_seq_length)
     ids_cache = TextTokenIdsCache(data_dir=args.preprocess_dir, prefix="passages")
     subset = list(range(len(ids_cache)))
     doc_dataset = SubsetSeqDataset(
         subset=subset,
         ids_cache=ids_cache,
-        max_seq_length=args.max_doc_length
+        max_seq_length=args.max_seq_length
     )
     assert not os.path.exists(args.doc_memmap_path)
     doc_memmap = np.memmap(args.doc_memmap_path,
