@@ -1,3 +1,5 @@
+import argparse
+
 from dataclasses import dataclass, field
 from transformers import TrainingArguments
 
@@ -107,3 +109,16 @@ class TokenizeArguments:
     )
     data_type: int = field(default=1, metadata={"help": "0 for doc, 1 for passage"})
     threads: int = field(default=32)
+
+
+@dataclass
+class InferenceArguments:
+    preprocess_dir: str = field()
+    model_path: str = field()
+    output_dir: str = field()
+    max_query_length: int = field(default=24)
+    max_seq_length: int = field(default=120)
+    eval_batch_size: int = field(default=32)
+    mode: str = field(default='test')
+    topk: int = field(default=100)
+    no_cuda: bool = field(default=False)

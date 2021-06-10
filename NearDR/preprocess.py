@@ -1,9 +1,8 @@
 import os
 
 from arguments import TokenizeArguments
-from dataset.preprocessor.preprocess import preprocess
-
 from transformers import HfArgumentParser
+from dataset.preprocessor.preprocess import preprocess
 
 
 def main():
