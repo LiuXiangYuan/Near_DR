@@ -29,7 +29,7 @@ def write_query_rel(args, pid2offset, qid2offset_file,
             query_positive_id.add(int(line.split()[0]))
         valid_query_num = len(query_positive_id)
 
-    out_query_path = os.path.join(args.out_data_dir, out_query_file,)
+    out_query_path = os.path.join(args.out_data_dir, out_query_file)
 
     print('start query file split processing')
     splits_dir_lst, _ = multi_file_process(

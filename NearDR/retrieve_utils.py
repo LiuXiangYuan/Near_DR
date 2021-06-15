@@ -28,7 +28,6 @@ def index_retrieve(index, query_embeddings, topk, batch=None):
 
 
 def construct_flatindex_from_embeddings(embeddings, ids=None):
-    n = embeddings.shape[0]
     dim = embeddings.shape[1]
     print('embedding shape: ' + str(embeddings.shape))
     index = faiss.index_factory(dim, "Flat", faiss.METRIC_INNER_PRODUCT)
@@ -39,7 +38,7 @@ def construct_flatindex_from_embeddings(embeddings, ids=None):
         ids = ids.astype(np.int64)
         print(ids.shape, ids.dtype)
         index = faiss.IndexIDMap2(index)
-        index.add_with_ids(n, embeddings, ids)
+        index.add_with_ids(embeddings, ids)
     else:
         index.add(embeddings)
     return index

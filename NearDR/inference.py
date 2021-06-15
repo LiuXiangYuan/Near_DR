@@ -143,6 +143,11 @@ def main():
     query_ids = np.memmap(args.queryids_memmap_path, dtype=np.int32, mode="r")
 
     index = construct_flatindex_from_embeddings(doc_embeddings, doc_ids)
+    if args.n_gpu == 0:
+        args.faiss_gpus = False
+    else:
+        args.faiss_gpus = [i for i in range(args.n_gpu)]
+        
     if args.faiss_gpus:
         index = convert_index_to_gpu(index, args.faiss_gpus, False)
     else:
