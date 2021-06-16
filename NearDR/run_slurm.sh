@@ -59,9 +59,9 @@
 
 RUN_NAME="infer_model.sh"
 
-PREPROCESS_DIR=/data/liuxiangyuan-slurm/work2021/Near_DR/dataset/preprocessed/marco_passage/roberta-base-ts2/
-MODEL_PATH=/data/liuxiangyuan-slurm/work2021/Near_DR/NearDR/model_output/marco_passage/roberta-base-ts2/
-OUTPUT_DIR=/data/liuxiangyuan-slurm/work2021/Near_DR/NearDR/infer_output/marco_passage/roberta-base-ts2/
+PREPROCESS_DIR=/data/liuxiangyuan-slurm/work2021/Near_DR/dataset/preprocessed/marco_passage/roberta-base-ts4/
+MODEL_PATH=/data/liuxiangyuan-slurm/work2021/Near_DR/NearDR/model_output/marco_passage/roberta-base-ts4/
+OUTPUT_DIR=/data/liuxiangyuan-slurm/work2021/Near_DR/NearDR/infer_output/marco_passage/roberta-base-ts4/
 MAX_QUERY_LENGTH=24
 MAX_SEQ_LENGTH=120
 BATCH_SIZE=1024

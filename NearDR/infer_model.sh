@@ -2,8 +2,8 @@
 sbatch <<EOT
 #!/bin/sh
 #SBATCH --job-name=DR_infer
-#SBATCH -o ./model_logs/marco_passage/infer-model-roberta-base-ts2.%A.out
-#SBATCH -e ./model_logs/marco_passage/infer-model-roberta-base-ts2.%A.err
+#SBATCH -o ./model_logs/marco_passage/infer-model-roberta-base-ts4.%A.out
+#SBATCH -e ./model_logs/marco_passage/infer-model-roberta-base-ts4.%A.err
 #SBATCH -p debug
 #SBATCH --gres=gpu:6
 #SBATCH --nodelist=gpu03
