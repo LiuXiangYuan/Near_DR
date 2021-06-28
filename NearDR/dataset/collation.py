@@ -3,6 +3,33 @@ import torch
 from .utils import pack_tensor_2D
 
 
+def adore_collate_function(max_seq_length):
+    cnt = 0
+
+    def collate_function(batch):
+        nonlocal cnt
+        length = None
+        if cnt < 10:
+            length = max_seq_length
+            cnt += 1
+
+        input_ids = [x["input_ids"] for x in batch]
+        attention_mask = [x["attention_mask"] for x in batch]
+        data = {
+            "input_ids": pack_tensor_2D(input_ids, default=1,
+                                        dtype=torch.int64, length=length),
+            "attention_mask": pack_tensor_2D(attention_mask, default=0,
+                                             dtype=torch.int64, length=length),
+        }
+        qoffsets = [x['offset'] for x in batch]
+        if "rel_poffsets" not in batch[0]:
+            return data, qoffsets
+        all_rel_poffsets = [x["rel_poffsets"] for x in batch]
+        return data, qoffsets, all_rel_poffsets
+
+    return collate_function
+
+
 def get_collate_function(max_seq_length):
     cnt = 0
 

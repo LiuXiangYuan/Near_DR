@@ -4,6 +4,10 @@ from tqdm import tqdm
 from timeit import default_timer as timer
 
 
+def init_faiss(faiss_omp_num_threads):
+    faiss.omp_set_num_threads(faiss_omp_num_threads)
+
+
 def index_retrieve(index, query_embeddings, topk, batch=None):
     print("Query Num", len(query_embeddings))
     start = timer()
@@ -75,5 +79,45 @@ def convert_index_to_gpu(index, faiss_gpu_index, useFloat16=False):
             vdev.push_back(i)
             vres.push_back(gpu_resources[i])
         index = faiss.index_cpu_to_gpu_multiple(vres, vdev, index, co)
+
+    return index
+
+
+def load_index(passage_embeddings, index_path, faiss_gpu_index, use_gpu):
+    dim = passage_embeddings.shape[1]
+    if index_path is None:
+        index = faiss.index_factory(dim, "Flat", faiss.METRIC_INNER_PRODUCT)
+        index.add(passage_embeddings)
+    else:
+        index = faiss.read_index(index_path)
+    if faiss_gpu_index and use_gpu:
+        if len(faiss_gpu_index) == 1:
+            res = faiss.StandardGpuResources()
+            res.setTempMemory(1024 * 1024 * 1024)
+            co = faiss.GpuClonerOptions()
+            if index_path:
+                co.useFloat16 = True
+            else:
+                co.useFloat16 = False
+            index = faiss.index_cpu_to_gpu(res, faiss_gpu_index, index, co)
+        else:
+            assert not index_path  # Only need one GPU for compressed index
+            global gpu_resources
+            if len(gpu_resources) == 0:
+                import torch
+                for i in range(torch.cuda.device_count()):
+                    res = faiss.StandardGpuResources()
+                    res.setTempMemory(128 * 1024 * 1024)
+                    gpu_resources.append(res)
+
+            assert isinstance(faiss_gpu_index, list)
+            vres = faiss.GpuResourcesVector()
+            vdev = faiss.IntVector()
+            co = faiss.GpuMultipleClonerOptions()
+            co.shard = True
+            for i in faiss_gpu_index:
+                vdev.push_back(i)
+                vres.push_back(gpu_resources[i])
+            index = faiss.index_cpu_to_gpu_multiple(vres, vdev, index, co)
 
     return index

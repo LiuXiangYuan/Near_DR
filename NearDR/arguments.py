@@ -23,10 +23,10 @@ class ModelArguments:
 
 @dataclass
 class FaissArguments:
-    pembed_path: str = field()
-    index_path: str = field()
+    pembed_path: str = field(default=None)
+    index_path: str = field(default=None)
     faiss_omp_num_threads: int = field(default=16)
-    index_cpu: bool = field(default=False)
+    index_cpu: bool = field(default=False)  # True for cpu
 
 
 @dataclass
@@ -79,7 +79,7 @@ class MyTrainingArguments(TrainingArguments):
     )
     local_rank: int = field(default=-1, metadata={"help": "For distributed training: local_rank"})
     metric_cut: int = field(default=None)
-    exam_mode: str = field(default="other", metadata={"help": "other for bm25/rand/in-batch, adore for adore trainer"})
+    exam_mode: str = field(default="rnb", metadata={"help": "rnb for rand/hard-negative/bm25, adore for adore trainer"})
 
 
 @dataclass

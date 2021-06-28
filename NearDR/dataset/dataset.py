@@ -102,3 +102,15 @@ class TrainInbatchWithRandDataset(TrainInbatchDataset):
         randpids = random.sample(range(len(self.doc_dataset)), self.rand_num)
         rand_passage_data = [self.doc_dataset[randpid] for randpid in randpids]
         return query_data, passage_data, rand_passage_data
+
+
+class TrainQueryDataset(SequenceDataset):
+    def __init__(self, queryids_cache,
+                 rel_file, max_query_length):
+        SequenceDataset.__init__(self, queryids_cache, max_query_length)
+        self.reldict = load_rel(rel_file)
+
+    def __getitem__(self, item):
+        ret_val = super().__getitem__(item)
+        ret_val['rel_poffsets'] = self.reldict[item]
+        return ret_val
